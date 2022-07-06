@@ -18,7 +18,7 @@ Please also cite the following articles when using this pipeline. Tree inference
 ![Figure 1_workflow](https://user-images.githubusercontent.com/108538922/177048506-749c9c9b-219c-4405-9cb5-fad0e519d2db.png)
 
 
-Abbreviations used in the flowchart: "PA" = polyploid assession, "al" = allele, "gt" = gene tree, "gtg" = gene tree group, and "subg" = subgenome.
+Abbreviations used in the flowchart: "PA" = polyploid accession, "al" = allele, "gt" = gene tree, "gtg" = gene tree group, and "subg" = subgenome.
 
 # Dependencies
 
