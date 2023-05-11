@@ -1,4 +1,4 @@
-# HomeoSorter
+[# HomeoSorter
 
 Current version 1.0 (July 2022)
 
@@ -87,3 +87,4 @@ python homeosorter.py -g Example/genetrees.txt -s Example/samplelist.txt --boots
 For each replicate, HomeoSorter will generate four folders: "1_formatting", "2_pruning", "3_astral", and "4_results". The former three contain the files generated in steps 1 to 3, respectively, and the final multilabelled tree ("astraltree") and the mapping list of homeologs to parental subgenomes ("taxonmap") are gathered in the last folder. 
 
 For shuffling and the bootstrapping analyses, the results of all replicates are wrapped in the "shuffling" and "bootstrapping" folders, respectively. However, since the sorted subgenomes are randomly named for different replicates (viz., a subgenome may be named differently among replicates, even it has the same phylogenetic position), before summarizing the results, we need to manually identify the subgenomes and rename them accordingly. Then the shuffling or the bootstrapping analyses can be summarized, e.g., using the [sumtrees.py](https://dendropy.org/programs/sumtrees.html) script of DendroPy ver. 4.5.2 (Sukumaran and Holder, 2010. Bioinformatics 26: 1569-1571).
+](https://github.com/ChenRen-SCBG)
