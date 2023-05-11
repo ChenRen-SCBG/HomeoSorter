@@ -14,22 +14,23 @@ from ete3 import Tree
 
 description = """
 
-HomeoSorter Version 1.0 (July 2022)
+HomeoSorter Version 1.1 (May 2023)
 
 HomeoSorter is a Python pipeline designed to investigate the parentage of allopolyploids. It uses a permutation 
 strategy and species-tree reconstruction method to assign the homeologs to the parental lineages and eventually 
-generate a multilabelled tree, on which allopolyploids are represented by multiple leaves (subgenomes) that cluster 
-respectively with the potential progenitors. The basic idea comes from Oberprieler et al. (2017), but with major 
-adjustments. Oberprieler et al. (2017) try to calculate all possible subgenome combinations across all genes at the 
-same time, which is computationally impossible for large datasets, because the subgenome combinations will increase 
-exponentially as the gene number increases. We thus adjust the strategy by taking a hierarchical approach, in which 
-the input genes are first divided into small groups to select local-best subgenome combination for each group. Then 
-every several gene groups are combined together and the local-best subgenome combination is again selected for each of 
-these larger gene groups. This process is repeated many times with the sizes of the gene groups gradually expanded 
-until all genes are eventually included as a single group to produce a final multilabelled tree. For more details and 
-other major adjustments, please see Ren et al. (2020).
+generate a multilabelled species tree, on which allopolyploids are represented by multiple leaves (subgenomes) that 
+cluster respectively with the potential progenitors. The basic idea comes from Oberprieler et al. (2017), but with 
+major adjustments. Oberprieler et al. (2017) try to calculate all possible subgenome combinations across all genes at 
+the same time, which is computationally very expensive or even impossible for large datasets, because the subgenome 
+combinations will increase exponentially as the gene number increases. We take a hierarchical approach, in which we 
+gradually grouped genes together and selected the local-best combination for each group at each step, until all genes 
+were finally combined to determine the overall best subgenome combination. For more details and other major adjustments, 
+please see Ren et al. (2023).
 
-Please also cite the following articles when using this pipeline. Tree inferences rely on ASTRAL programs.
+Citation:
+
+
+Please cite the following articles when using this pipeline. Tree inferences rely on ASTRAL programs.
 Oberprieler, C., et al. 2017. A permutation approach for inferring species networks from gene trees in polyploid
     complexes by minimising deep coalescences. Methods in Ecology and Evolution 8: 835-849.
 Zhang, C., et al. 2018. ASTRAL-III: polynomial time species tree reconstruction from partially resolved gene trees.
@@ -55,6 +56,10 @@ def separate_diploid_polyploid_leaves(samples, trees, calculate_alleles):
         polyploid_leaves += polyploid_leaves_of_individual_tree
 
         if calculate_alleles:
+            for allele in polyploid_leaves_of_individual_tree:
+                polyploid_alleles.append([allele])
+
+            '''
             # Calculate the allele number of each polyploid sample for each tree. If multiple sequences form a clade,
             # they are here considered "one" allele to relieve the computational burden.
             temp_leaves = polyploid_leaves_of_individual_tree
@@ -73,6 +78,7 @@ def separate_diploid_polyploid_leaves(samples, trees, calculate_alleles):
                         length = len(temp_leaves)
             if length == 1:
                 polyploid_alleles.append(temp_leaves[:length])
+            '''
 
     diploid_leaves = list(set(all_leaves) - set(polyploid_leaves))
 
@@ -905,10 +911,10 @@ def homeosorter(args):
 
 def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-g", dest="gene_trees", help="A text file of input individual gene trees to be investigated, "
+    parser.add_argument("-g", dest="gene_trees", help="A text file of input individual gene trees to be analyzed, "
                                                       "with each line containing a single tree. Note that only "
                                                       "alphanumeric characters are allowed for sample names and a "
-                                                      "sample name can not be part of the names of any other samples",
+                                                      "sample name cannot be part of any other samples' names.",
                         default=None)
     parser.add_argument("-s", dest="sample_list",
                         help="A list of polyploid samples to be investigated, with each line containing a sample and "
@@ -921,16 +927,12 @@ def main():
                         default=None)
     parser.add_argument("-apro", dest="astral_pro", help="The route to the ASTRAL-pro program.",
                         default=None)
-    parser.add_argument("-al", "--allele_limit", type=int, dest="allele_limit",
-                        help="A limited allele number used as a criterion to divide genes into small groups "
+    parser.add_argument("-al", "--allele", type=int, dest="allele_limit",
+                        help="A limited number of alleles used as a criterion for dividing genes into small groups "
                              "(substep 1 of step 3). For each polyploid sample in a gene group, the total alleles "
-                             "cannot exceed the limited number. For example, there are two genes both having two "
-                             "alleles for one polyploid sample and three for the other sample. If allele_limit is "
-                             "set to six, the two genes can be grouped together, but not for allele_limit being five,"
-                             " because the total alleles for the second sample will exceed the allele_limit. "
-                             "Normally, a larger number would be helpful in accurate assignments of homeologs to "
-                             "subgenomes, but, for samples of high ploidy levels, it will impose heavy computational "
-                             "burdens.", default=8)
+                             "cannot exceed the specified number. Normally, a larger number would be helpful in "
+                             "accurately assigning homeologs to subgenomes, but, for samples with high ploidy levels, "
+                             "it will impose heavy computational burdens.", default=6)
     parser.add_argument("-b", "--best", type=int, dest="best",
                         help="A number of allele or subgenome combinations with top final normalized quartet scores to "
                              "be selected for every polyploid sample in the first round of ASTRAL analyses, and then "
@@ -939,20 +941,18 @@ def main():
                              "computational burdens will be heavy. If this parameter is set to one, HomeoSorter "
                              "literally skips the second round of ASTRAL analyses.", default=3)
     parser.add_argument("-e", "--every", type=int, dest="every",
-                        help="The number of the gene groups to be pooled together from the substep 2 of step 3. "
-                             "Similar to --allele_limit, this parameter is related to ploidy levels. More possible "
-                             "subgenome combinations will be generated for samples of higher ploidy levels, and thus "
-                             "impose heavier computational burdens.", default=3)
+                        help="The number of the gene groups to be pooled together from the substep 2 of step 3. ",
+                        default=3)
     parser.add_argument("--shuffle", dest="shuffle", action='store_true',
                         help="Perform shuffling analyses with the order of input gene trees shuffled in each replicate.",
                         default=False)
     parser.add_argument("--bootstrap", dest="bootstrap", action='store_true',
                         help="Perform bootstrapping analyses with a new set of input gene trees generated by randomly "
-                             "sampling the original gene trees with replacement in each replicate.", default=False)
+                             "sampling the original gene trees with replacement for each replicate.", default=False)
     parser.add_argument("-r", type=int, dest="replicate",
                         help="The number of replicates for shuffling or bootstrapping analyses.", default=100)
-    parser.add_argument("-cpu", type=int, dest="cpu",
-                        help="The number of processors to be used, using all the processors by default.",
+    parser.add_argument("--threads", type=int, dest="cpu",
+                        help="The number of threads to be used, using all the threads by default.",
                         default=multiprocessing.cpu_count())
     parser.add_argument("-o", dest="output_directory",
                         help="The directory for output files, using the directory of input gene trees by default.",
@@ -974,10 +974,10 @@ def main():
                         help="Only run step 2 to prune each input gene tree for each investigated sample.",
                         default=False)
     parser.add_argument("--3", dest="step3", action='store_true',
-                        help="Only run step 3 (the core process) to assign alleles to subgenomes and generate an "
-                             "overall multilabelled species tree.", default=False)
+                        help="Only run step 3 (the core procedure) to assign alleles to subgenomes and generate an "
+                             "overall optimum multilabelled species tree.", default=False)
     parser.add_argument("--4", dest="step4", action='store_true',
-                        help="Only run step 4 to gather results and statistics.", default=False)
+                        help="Only run step 4 to gather results.", default=False)
 
     args = parser.parse_args()
 
