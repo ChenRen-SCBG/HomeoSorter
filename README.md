@@ -69,16 +69,16 @@ Sample3 4
 
 A basic analysis can be run with four necessary parameters.
 ```
-python homeosorter.py -g genetrees -s samplelist -anor /root/software/astral/astral.5.7.3.jar -apro /root/software/astral-pro/astral.1.1.2.jar
+python homeosorter.py -g Example/genetrees.txt -s Example/samplelist.txt -anor astral/astral.5.7.3.jar -apro astral-pro/astral.1.1.2.jar
 ```
 
 We can also run multiple replicates (“-r”) to assess the robustness of the inferred result. In addition, the input gene trees can be adjusted for each replicate with two options. One is to shuffle the order of input gene trees (“--shuffle”); the other is to randomly sample the original input gene trees with replacement (“--bootstrap”). The shuffling and the bootstrapping analyses could only be conducted separately. 
 ```
-python homeosorter.py -g genetrees -s samplelist --shuffle -r 100 -anor /root/software/astral/astral.5.7.3.jar -apro /root/software/astral-pro/astral.1.1.2.jar
+python homeosorter.py -g Example/genetrees.txt -s Example/samplelist.txt --shuffle -r 100 -anor astral/astral.5.7.3.jar -apro astral-pro/astral.1.1.2.jar
 ```
 or
 ```
-python homeosorter.py -g genetrees -s samplelist --bootstrap -r 100 -anor /root/software/astral/astral.5.7.3.jar -apro /root/software/astral-pro/astral.1.1.2.jar
+python homeosorter.py -g Example/genetrees.txt -s Example/samplelist.txt --bootstrap -r 100 -anor astral/astral.5.7.3.jar -apro astral-pro/astral.1.1.2.jar
 ```
 
 # Output
