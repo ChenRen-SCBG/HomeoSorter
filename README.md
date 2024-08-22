@@ -15,7 +15,8 @@ Please also cite the following articles when using this pipeline. Tree inference
 
 # Workflow
 
-![Figure 1](https://github.com/ChenRen-SCBG/test/assets/108538922/3ac55f49-67d4-4399-80e3-e4deb5abd953)
+![Figure 1](https://github.com/user-attachments/assets/b13cbb3e-69a2-491e-89fc-22a4f23d3f03)
+
 
 Figure 1. Workflow of the core procedue of HomeoSorter, illustrated using a simple case with five genes (A–E), two tetraploids (in red and blue), and the parameters of “--allele 4 --best 2 --every 2”. The subscripts following the gene letters A–E indicate different alleles of the corresponding genes. Subgnomes with assigned alleles are separated by slashes (“/”), and dashes (“–”) indicate no alleles being assigned to the corresponding subgenomes. The parameter “--allele 4” is the criterion for dividing genes into groups; it suggests that the total alleles of each polyploid in each group should be equal to or less than four. For example, the first three genes cannot be grouped together; otherwise the total alleles for the polyploid in red would be six, exceeding the limit of four. The parameter “--best 2” suggests that the top two allele/subgenome combinations will be selected in the first ASTRAL analyses and reassessed in the second ASTRAL analyses, and “--every 2” suggests that every two gene groups will be gradually combined together from the second substep. Note that this example is very simple. The whole procedure requires only two substeps and generates only a few possible allele/subgenome combinations (e.g., only two possible combinations for the first ASTRAL analysis in the second substep). For large datasets, the second substep needs to be repeated multiple times until all genes are eventually included. In addition, if the case is more complex (e.g., more polyploids, higher ploidy levels, and/or larger parameter values), HomeoSorter will generate a much larger number of allele/subgenome combinations.
 
