@@ -14,7 +14,7 @@ from ete3 import Tree
 
 description = """
 
-HomeoSorter Version 1.1 (May 2023)
+HomeoSorter Version 1.1.1 (Sept 2024)
 
 HomeoSorter is a Python pipeline designed to investigate the parentage of allopolyploids. It uses a permutation 
 strategy and species-tree reconstruction method to assign the homeologs to the parental lineages and eventually 
@@ -25,17 +25,17 @@ the same time, which is computationally very expensive or even impossible for la
 combinations will increase exponentially as the gene number increases. We take a hierarchical approach, in which we 
 gradually grouped genes together and selected the local-best combination for each group at each step, until all genes 
 were finally combined to determine the overall best subgenome combination. For more details and other major adjustments, 
-please see Ren et al. (2023).
+please see Ren et al. (2024).
 
 Citation:
-
+Ren, C., et al. 2024. Complex but Clear Allopolyploid Pattern of Subtribe Tussilagininae (Asteraceae: Senecioneae) Revealed by Robust Phylogenomic Evidence, with Development of a Novel Homeolog-Sorting Pipeline. Systematic Biology. https://doi.org/10.1093/sysbio/syae046
 
 Please cite the following articles when using this pipeline. Tree inferences rely on ASTRAL programs.
 Oberprieler, C., et al. 2017. A permutation approach for inferring species networks from gene trees in polyploid
     complexes by minimising deep coalescences. Methods in Ecology and Evolution 8: 835-849.
 Zhang, C., et al. 2018. ASTRAL-III: polynomial time species tree reconstruction from partially resolved gene trees.
     BMC Bioinformatics 19: 153.
-Zhang, C., et al. 2020. ASTRAL-Pro: quartet-based species-tree inference despite paralogy, Molecular Biology and
+Zhang, C., et al. 2020. ASTRAL-Pro: quartet-based species-tree inference despite paralogy. Molecular Biology and
     Evolution 37: 3292-3307.
 
 """
@@ -354,7 +354,7 @@ def astral_mpi_cmd(taxon_map_x, taxon_map_list, astral_program):
         else:
             p = subprocess.Popen(f'java -jar {astral_normal} -i {tree} -a {taxon_map} '
                                  f'-o {taxon_map}.astraltree 2>{taxon_map}.log', shell=True)
-        p.wait(timeout=200)
+        p.wait(timeout=2000)   
         if subprocess.TimeoutExpired:
             p.kill()
 
