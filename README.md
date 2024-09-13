@@ -1,6 +1,6 @@
 # HomeoSorter
 
-Current version 1.1.1 (Sept 2024)
+Current version 1.1.2 (Sept 2024)
 
 HomeoSorter is a Python pipeline designed to investigate the parentage of allopolyploids. It uses a permutation strategy and species-tree reconstruction method to assign the homeologs to the parental lineages and eventually generate a multilabelled species tree, on which allopolyploids are represented by multiple leaves (subgenomes) that cluster respectively with the potential progenitors. The basic idea comes from Oberprieler et al. (2017), but with major adjustments. Oberprieler et al. (2017) try to calculate all possible subgenome combinations across all genes at the same time, which is computationally very expensive or even impossible for large datasets, because the subgenome combinations will increase exponentially as the gene number increases. We take a hierarchical approach, in which we gradually grouped genes together and selected the local-best combination for each group at each step, until all genes were finally combined to determine the overall best subgenome combination. For more details and other major adjustments, please see [Ren et al. (2024)](https://doi.org/10.1093/sysbio/syae046).
 
