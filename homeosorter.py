@@ -14,7 +14,7 @@ from ete3 import Tree
 
 description = """
 
-HomeoSorter Version 1.1.1 (Sept 2024)
+HomeoSorter Version 1.1.2 (Sept 2024)
 
 HomeoSorter is a Python pipeline designed to investigate the parentage of allopolyploids. It uses a permutation 
 strategy and species-tree reconstruction method to assign the homeologs to the parental lineages and eventually 
@@ -349,7 +349,7 @@ def astral_mpi_cmd(taxon_map_x, taxon_map_list, astral_program):
         taxon_map = taxon_map_list[taxon_map_x]
         tree = taxon_map[:taxon_map.index(".TaxonMap_")] + ".tre"
         if astral_program == astral_pro:
-            p = subprocess.Popen(f'java -D"java.library.path={astral_pro_dir}/lib" -jar {astral_pro} -i {tree} '
+            p = subprocess.Popen(f'java -D"java.library.path={astral_pro_dir}/lib" -jar {astral_pro} -i {tree} --cpu-threads 1 '
                                  f'-a {taxon_map} -o {taxon_map}.astraltree 2>{taxon_map}.log', shell=True)
         else:
             p = subprocess.Popen(f'java -jar {astral_normal} -i {tree} -a {taxon_map} '
