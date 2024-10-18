@@ -14,21 +14,23 @@ from ete3 import Tree
 
 description = """
 
-HomeoSorter Version 1.1.2 (Sept 2024)
+HomeoSorter Version 1.1.3 (Oct 2024)
 
-HomeoSorter is a Python pipeline designed to investigate the parentage of allopolyploids. It uses a permutation 
-strategy and species-tree reconstruction method to assign the homeologs to the parental lineages and eventually 
-generate a multilabelled species tree, on which allopolyploids are represented by multiple leaves (subgenomes) that 
-cluster respectively with the potential progenitors. The basic idea comes from Oberprieler et al. (2017), but with 
-major adjustments. Oberprieler et al. (2017) try to calculate all possible subgenome combinations across all genes at 
-the same time, which is computationally very expensive or even impossible for large datasets, because the subgenome 
-combinations will increase exponentially as the gene number increases. We take a hierarchical approach, in which we 
-gradually grouped genes together and selected the local-best combination for each group at each step, until all genes 
-were finally combined to determine the overall best subgenome combination. For more details and other major adjustments, 
+HomeoSorter is a Python pipeline designed to investigate the parentage of allopolyploids. It uses a permutation
+strategy and species-tree reconstruction method to assign the homeologs to the parental lineages and eventually
+generate a multilabelled species tree, on which allopolyploids are represented by multiple leaves (subgenomes) that
+cluster respectively with the potential progenitors. The basic idea comes from Oberprieler et al. (2017), but with
+major adjustments. Oberprieler et al. (2017) try to calculate all possible subgenome combinations across all genes at
+the same time, which is computationally very expensive or even impossible for large datasets, because the subgenome
+combinations will increase exponentially as the gene number increases. We take a hierarchical approach, in which we
+gradually grouped genes together and selected the local-best combination for each group at each step, until all genes
+were finally combined to determine the overall best subgenome combination. For more details and other major adjustments,
 please see Ren et al. (2024).
 
 Citation:
-Ren, C., et al. 2024. Complex but Clear Allopolyploid Pattern of Subtribe Tussilagininae (Asteraceae: Senecioneae) Revealed by Robust Phylogenomic Evidence, with Development of a Novel Homeolog-Sorting Pipeline. Systematic Biology. https://doi.org/10.1093/sysbio/syae046
+Ren, C., et al. 2024. Complex but Clear Allopolyploid Pattern of Subtribe Tussilagininae (Asteraceae: Senecioneae) 
+    Revealed by Robust Phylogenomic Evidence, with Development of a Novel Homeolog-Sorting Pipeline. Systematic Biology. 
+    https://doi.org/10.1093/sysbio/syae046
 
 Please cite the following articles when using this pipeline. Tree inferences rely on ASTRAL programs.
 Oberprieler, C., et al. 2017. A permutation approach for inferring species networks from gene trees in polyploid
@@ -354,7 +356,7 @@ def astral_mpi_cmd(taxon_map_x, taxon_map_list, astral_program):
         else:
             p = subprocess.Popen(f'java -jar {astral_normal} -i {tree} -a {taxon_map} '
                                  f'-o {taxon_map}.astraltree 2>{taxon_map}.log', shell=True)
-        p.wait(timeout=2000)   
+        p.wait(timeout=2000)
         if subprocess.TimeoutExpired:
             p.kill()
 
@@ -661,14 +663,25 @@ def astral_2(formatted_gene_trees, start_tree, end_tree, substep):
               f"Substep {substep}: Analyses (astral_2) of gt{start_tree} to gt{end_tree} for all samples finished.\n\n\n")
 
 
-def astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, best):
+def astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, best, ignore):
     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "----",
           f"Substep {substep}: Analyze gene trees gt{start_tree} to gt{end_tree}:\n")
     if len(polyploid_samples) == 1:
         astral_1(start_tree, end_tree, substep, best=1)
-    elif len(polyploid_samples) <= 7:
-        astral_1(start_tree, end_tree, substep, best)
-        astral_2(formatted_gene_trees, start_tree, end_tree, substep)
+    else:
+        possible_combinations = 1
+        for i in polyploidy_levels:
+            possible_combinations *= int(i/2)
+        if possible_combinations <= 5000 or best == 1 or ignore:
+            astral_1(start_tree, end_tree, substep, best)
+            astral_2(formatted_gene_trees, start_tree, end_tree, substep)
+        else:
+            print(f"\n\n*****WARNING: A total of {possible_combinations} possible subgenome combinations have been "
+                  f"generated for the second round of ASTRAL analyses. To improve efficiency, it may be better to "
+                  f"select representative polyploid samples instead of including all of them, or to set the '-b' parameter "
+                  f"to '1' in order to skip the second round of ASTRAL analyses. To proceed with the analyses regardless, "
+                  f"use the '--ignore' flag.\n")
+            sys.exit(0)
 
 
 def homeosorter(args):
@@ -817,7 +830,7 @@ def homeosorter(args):
             for tree_x in range(end_tree_num_checked_index + 1, len(start_trees)):
                 start_tree = start_trees[tree_x]
                 end_tree = end_trees[tree_x]
-                astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, args.best)
+                astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, args.best, args.ignore)
         elif substep > 1:
             for tree_x in range(end_tree_num_checked_index + 1, len(start_trees), args.every ** (substep - 1)):
                 start_tree = start_trees[tree_x]
@@ -825,7 +838,7 @@ def homeosorter(args):
                     end_tree = end_trees[-1]
                 else:
                     end_tree = end_trees[tree_x + args.every ** (substep - 1) - 1]
-                astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, args.best)
+                astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, args.best, args.ignore)
 
         substep += 1
         while len(glob.glob(f"{running_output_dir}/3_astral/best_combinations/substep_{substep - 1}_*")) > len(
@@ -836,7 +849,7 @@ def homeosorter(args):
                     end_tree = end_trees[-1]
                 else:
                     end_tree = end_trees[tree_x + args.every ** (substep - 1) - 1]
-                astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, args.best)
+                astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, args.best, args.ignore)
             substep += 1
 
     if args.step4:
@@ -918,10 +931,7 @@ def main():
                         default=None)
     parser.add_argument("-s", dest="sample_list",
                         help="A list of polyploid samples to be investigated, with each line containing a sample and "
-                             "its ploidy level separated by a gap or tab. For example:\n"
-                             "Sample1 4\n"
-                             "Sample2 6\n"
-                             "Sample3 4",
+                             "its ploidy level separated by a gap or tab.",
                         default=None)
     parser.add_argument("-anor", dest="astral_normal", help="The route to the ASTRAL program.",
                         default=None)
@@ -932,16 +942,16 @@ def main():
                              "(substep 1 of step 3). For each polyploid sample in a gene group, the total alleles "
                              "cannot exceed the specified number. Normally, a larger number would be helpful in "
                              "accurately assigning homeologs to subgenomes, but, for samples with high ploidy levels, "
-                             "it will impose heavy computational burdens.", default=6)
+                             "it will impose heavy computational burdens. (default = 6)", default=6)
     parser.add_argument("-b", "--best", type=int, dest="best",
                         help="A number of allele or subgenome combinations with top final normalized quartet scores to "
                              "be selected for every polyploid sample in the first round of ASTRAL analyses, and then "
                              "passed to the second ASTRAL analyses for reassessments. Similarly, a larger number would "
                              "be helpful in homeolog assignments, but, when many polyploids are investigated, the "
                              "computational burdens will be heavy. If this parameter is set to one, HomeoSorter "
-                             "literally skips the second round of ASTRAL analyses.", default=3)
+                             "literally skips the second round of ASTRAL analyses. (default = 3)", default=3)
     parser.add_argument("-e", "--every", type=int, dest="every",
-                        help="The number of the gene groups to be pooled together from the substep 2 of step 3. ",
+                        help="The number of the gene groups to be pooled together from the substep 2 of step 3. (default = 3)",
                         default=3)
     parser.add_argument("--shuffle", dest="shuffle", action='store_true',
                         help="Perform shuffling analyses with the order of input gene trees shuffled in each replicate.",
@@ -950,7 +960,7 @@ def main():
                         help="Perform bootstrapping analyses with a new set of input gene trees generated by randomly "
                              "sampling the original gene trees with replacement for each replicate.", default=False)
     parser.add_argument("-r", type=int, dest="replicate",
-                        help="The number of replicates for shuffling or bootstrapping analyses.", default=100)
+                        help="The number of replicates for shuffling or bootstrapping analyses. (default = 100)", default=100)
     parser.add_argument("--threads", type=int, dest="cpu",
                         help="The number of threads to be used, using all the threads by default.",
                         default=multiprocessing.cpu_count())
@@ -965,6 +975,10 @@ def main():
                         help="Resume interrupted analyses.", default=False)
     parser.add_argument("--overwrite", dest="overwrite", action='store_true',
                         help="Overwrite previous analyses.", default=False)
+    parser.add_argument("--ignore", dest="ignore", action='store_true',
+                        help="If more than 5000 possible subgenome combinations are generated for the second round of ASTRAL "
+                             "analyses, a warning will be issued. Use this flag to proceed with the analyses regardless.",
+                        default=False)
     parser.add_argument("--1", dest="step1", action='store_true',
                         help="Only run step 1 to format the individual gene trees, mainly to append polyploid samples "
                              "with unique gene indexes to avoid admixture in generating allele and subgenome "
@@ -997,12 +1011,14 @@ def main():
         polyploid_samples = []
         polyploidy_levels = []
         for sample in sample_list:
+            sample = sample.strip()
             sample = sample.replace("\t", " ")
-            name = sample.split(" ")[0]
-            ploidy = int(sample.split(" ")[-1])
-            polyploid_samples.append(name)
-            polyploidy_levels.append(ploidy)
-            print(name, str(ploidy) + "x")
+            if sample:
+                name = sample.split(" ")[0]
+                ploidy = int(sample.split(" ")[-1])
+                polyploid_samples.append(name)
+                polyploidy_levels.append(ploidy)
+                print(name, str(ploidy) + "x")
         print("\n")
 
         astral_normal = os.path.realpath(args.astral_normal)
