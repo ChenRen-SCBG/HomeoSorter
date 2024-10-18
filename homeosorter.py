@@ -669,18 +669,17 @@ def astral_analyses(formatted_gene_trees, start_tree, end_tree, substep, best, i
     if len(polyploid_samples) == 1:
         astral_1(start_tree, end_tree, substep, best=1)
     else:
-        possible_combinations = 1
-        for i in polyploidy_levels:
-            possible_combinations *= int(i/2)
+        possible_combinations = best**len(polyploid_samples)
         if possible_combinations <= 5000 or best == 1 or ignore:
             astral_1(start_tree, end_tree, substep, best)
             astral_2(formatted_gene_trees, start_tree, end_tree, substep)
         else:
-            print(f"\n\n*****WARNING: A total of {possible_combinations} possible subgenome combinations have been "
+            print(f"\n\n*****WARNING: A total of {possible_combinations} possible subgenome combinations will be "
                   f"generated for the second round of ASTRAL analyses. To improve efficiency, it may be better to "
-                  f"select representative polyploid samples instead of including all of them, or to set the '-b' parameter "
-                  f"to '1' in order to skip the second round of ASTRAL analyses. To proceed with the analyses regardless, "
-                  f"use the '--ignore' flag.\n")
+                  f"select representative polyploid samples rather than including all of them. Alternatively, you can "
+                  f"reduce the value of the -b parameter or set it to 1 to skip the second round of ASTRAL analyses. "
+                  f"If you wish to proceed with the analyses despite the large number of combinations, you can use "
+                  f"the --ignore flag.\n")
             sys.exit(0)
 
 
@@ -1007,7 +1006,6 @@ def main():
         print(f"A total of {total_tree_num} individual gene trees will be analyzed.")
 
         sample_list = open(args.sample_list).readlines()
-        print(f"A total of {len(sample_list)} samples will be investigated:")
         polyploid_samples = []
         polyploidy_levels = []
         for sample in sample_list:
@@ -1018,8 +1016,9 @@ def main():
                 ploidy = int(sample.split(" ")[-1])
                 polyploid_samples.append(name)
                 polyploidy_levels.append(ploidy)
-                print(name, str(ploidy) + "x")
-        print("\n")
+        print(f"A total of {len(polyploid_samples)} samples will be investigated:")
+        for i in range(len(polyploid_samples)):
+            print(polyploid_samples[i], str(polyploidy_levels[i]) + "x")
 
         astral_normal = os.path.realpath(args.astral_normal)
         astral_normal_dir = os.path.split(astral_normal)[0]
